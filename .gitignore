@@ -1,2 +1,4 @@
-node_modules
-.idea
+node_modules/
+.idea/
+API_KEY.js
+TODO.txt

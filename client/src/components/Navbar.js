@@ -16,4 +16,4 @@ class MyNavbar extends Component {
   }
 }
 
-export default withRouter(MyNavbar);
+export default withRouter(MyNavbar)

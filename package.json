@@ -13,7 +13,11 @@
     "express": "~4.16.0",
     "http-errors": "~1.6.2",
     "jade": "~1.11.0",
-    "morgan": "~1.9.0"
+    "morgan": "~1.9.0",
+    "pg": "^7.8.0",
+    "pg-hstore": "^2.3.2",
+    "sequelize": "^4.42.0",
+    "strong-soap": "^1.14.0"
   },
   "devDependencies": {
     "nodemon": "^1.18.9"

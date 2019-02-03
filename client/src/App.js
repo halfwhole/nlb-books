@@ -5,6 +5,7 @@ import './App.css';
 import Navbar from './components/Navbar';
 import Index from './components/Index';
 import Records from './components/Records';
+import Book from './components/Book';
 
 class App extends Component {
   render() {
@@ -14,6 +15,7 @@ class App extends Component {
           <Navbar/>
           <Switch>
             <Route exact path="/" component={Index}/>
+            <Route path="/book/:brn" component={Book}/>
             <Route path="/records" component={Records}/>
           </Switch>
         </div>
@@ -22,4 +24,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default App

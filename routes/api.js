@@ -3,7 +3,7 @@ var router = express.Router();
 
 const soap = require('strong-soap').soap;
 const url = "http://openweb-stg.nlb.gov.sg/ows/CatalogueService.svc?wsdl";
-const { api_key } = require('../API_KEY');
+const { api_key } = process.env.API_KEY || require('../API_KEY');
 
 const models = require('../models/index');
 const Record = models.Record;

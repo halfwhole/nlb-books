@@ -1,5 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Form, FormGroup, Label, Input, Button } from 'reactstrap';
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getRecords, createRecord, deleteRecord } from "../Actions";
 
 class Records extends Component {
@@ -8,18 +10,22 @@ class Records extends Component {
     super(props)
     this.state = {
       brn: '',
-      records: []
+      records: null,
+      submitting: false
     }
-    this.handleSubmit = this.handleSubmit.bind(this)
     this.handleChange = this.handleChange.bind(this)
+    this.handleSubmit = this.handleSubmit.bind(this)
+    this.submitCallback = this.submitCallback.bind(this)
   }
 
   componentDidMount() {
-    this.getRecords()
+    this.submitCallback()
   }
 
-  getRecords() {
-    getRecords(content => this.setState({ records: content }))
+  // once submitted, gets records (again), then sets submitting back to false. to be called after every api action
+  submitCallback() {
+    getRecords(records => this.setState({ records }))
+    this.setState({ submitting: false })
   }
 
   handleChange(event) {
@@ -29,24 +35,33 @@ class Records extends Component {
   handleSubmit(event) {
     const { brn } = this.state
     event.preventDefault()
-    createRecord(brn, () => { this.getRecords() })
+    this.setState({ submitting: true })
+    createRecord(brn, this.submitCallback)
+  }
+
+  handleDelete(brn) {
+    this.setState({ submitting: true })
+    deleteRecord(brn, this.submitCallback)
   }
 
   showRecords() {
-    const { records } = this.state
+    const { records, submitting } = this.state
     return (
       <ul>
-        { records.map((record) =>
-          <li key={record.brn}>
+        { records === null ? <div>Loading records... <FontAwesomeIcon icon={faSpinner} spin/></div> :
+          records.map((record) =>
+            <li key={record.brn}>
             { record.brn }&nbsp;
-            <Button color="danger" onClick={() => deleteRecord(record.brn, () => { this.getRecords() })}>Delete</Button>
-          </li>
-        )}
+            <Button color="danger" onClick={() => this.handleDelete(record.brn)} disabled={submitting}>Delete</Button>
+            </li>
+          )
+        }
       </ul>
     )
   }
 
-  render () {
+  render() {
+    const { submitting } = this.state
     return (
       <Container>
         <h2>Add Record</h2>
@@ -55,7 +70,7 @@ class Records extends Component {
             <Label for="brn">BRN</Label>
             <Input type="number" value={this.state.brn} onChange={this.handleChange} name="brn" id="brn"/>
           </FormGroup>
-          <Button>Submit</Button>
+          <Button disabled={submitting}>Submit</Button>
         </Form>
         <br/>
         <h2>Current Records</h2>

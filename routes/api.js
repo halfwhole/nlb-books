@@ -8,7 +8,7 @@ const { api_key } = require('../API_KEY');
 const models = require('../models/index');
 const Record = models.Record;
 
-function queryBRN(brn) {
+function queryBRNAvailability(brn) {
   return new Promise((resolve, reject) => {
     const requestArgs = {
       GetAvailabilityInfoRequest: {
@@ -18,16 +18,36 @@ function queryBRN(brn) {
         Modifiers: {}
       }
     };
-    soap.createClient(url, {},(err, client) => {
+    soap.createClient(url, {}, (err, client) => {
       const method = client['CatalogueService']['BasicHttpBinding_ICatalogueService']['GetAvailabilityInfo'];
       method(requestArgs, (err, result, envelope, soapHeader) => {
         // TODO: error handling. If cannot connect to server...
         if (err) { reject(err) }
         // TODO: error handling. If result.Status is fail, should reject & send error message
         // console.log('result: ' + JSON.stringify(result));
-        resolve(result.Items.Item)
+        resolve(result.Items.Item);
       })
     })
+  });
+}
+
+function queryBRNTitleDetails(brn) {
+  return new Promise((resolve, reject) => {
+    const requestArgs = {
+      GetTitleDetailsRequest : {
+        APIKey: api_key,
+        BID: brn,
+        ISBN: ""
+      }
+    };
+    soap.createClient(url, {}, (err, client) => {
+      const method = client['CatalogueService']['BasicHttpBinding_ICatalogueService']['GetTitleDetails'];
+      method(requestArgs, (err, result, envelope, soapHeader) => {
+        // TODO: error handling
+        if (err) { reject(err) }
+        resolve(result.TitleDetail);
+      })
+    });
   });
 }
 
@@ -36,18 +56,27 @@ function filterAvailableBooks(result) {
 }
 
 // Get availability (pass in BRN as param)
-router.get('/brn/:brn', function(req, res) {
+router.get('/brn/availability/:brn', function(req, res) {
   const brn = req.params.brn;
-  queryBRN(brn)
+  queryBRNAvailability(brn)
     .then((result) => {
       res.json(filterAvailableBooks(result));
     })
 });
 
-// Create record (pass in BRN as JSON)
+// Get title details (pass in BRN as param)
+router.get('/brn/title/:brn', function(req, res) {
+  const brn = req.params.brn;
+  queryBRNTitleDetails(brn)
+    .then((result) => {
+      res.json(result);
+    })
+});
+
+// Create record (POST method, pass in details as JSON)
 router.post('/record', function(req, res) {
-  const brn = parseInt(req.body.brn);
-  Record.create({ brn: brn })
+  const { brn, title, author } = req.body;
+  Record.create({ brn, title, author })
     .then((record) => res.status(201).send(record))
     .catch((error) => res.status(400).send(error))
 });
@@ -58,10 +87,16 @@ router.get('/record', function(req, res) {
     .then((records) => res.json(records))
 });
 
-// Delete record (pass in BRN as param)
+// Get record (pass in BRN as param)
+router.get('/record/:brn', function(req, res) {
+  Record.findOne({ where: { brn: req.params.brn } })
+    .then((result) => res.status(200).send(result))
+});
+
+// Delete record (DELETE method, pass in BRN as param)
 router.delete('/record/:brn', function(req, res) {
   Record.destroy({ where: { brn: req.params.brn } })
-    .then(() => res.status(201).send())
+    .then(() => res.status(200).send())
 });
 
 module.exports = router;

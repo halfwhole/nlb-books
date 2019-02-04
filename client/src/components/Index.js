@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { Container, Table } from 'reactstrap';
+import { Container } from 'reactstrap';
 import { withRouter } from 'react-router';
-
-const testBrn = '200985763'
+import { getRecords } from "../Actions";
 
 class Index extends Component {
   constructor(props) {
@@ -17,27 +16,27 @@ class Index extends Component {
   }
 
   getRecords() {
-    fetch('/api/record')
-      .then(res => res.json())
-      .then(records => this.setState({ records: records }))
+    getRecords((records) => this.setState({ records }))
   }
 
-  renderRecords() {
+  showRecords() {
     const { records } = this.state
     const { history } = this.props
     return (
       <ul>
-        { records.map((record) => <li onClick={() => history.push('/book/' + record.brn)}>{ record.brn }</li> )}
+        { records.map((record) =>
+          <li key={record.brn} onClick={() => history.push('/book/' + record.brn)}>
+            { record.brn } { record.title }
+          </li> )}
       </ul>
     )
   }
-
 
   render () {
     return (
       <Container>
         <h2>Records</h2>
-        { this.renderRecords() }
+        { this.showRecords() }
         <br/>
       </Container>
     )

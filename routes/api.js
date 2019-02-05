@@ -3,7 +3,7 @@ var router = express.Router();
 
 const soap = require('strong-soap').soap;
 const url = "http://openweb-stg.nlb.gov.sg/ows/CatalogueService.svc?wsdl";
-const { api_key } = process.env.API_KEY || require('../API_KEY');
+const { API_KEY } = process.env || require('../API_KEY');
 
 const models = require('../models/index');
 const Record = models.Record;
@@ -12,7 +12,7 @@ function queryNLBAvailability(brn) {
   return new Promise((resolve, reject) => {
     const requestArgs = {
       GetAvailabilityInfoRequest: {
-        APIKey: api_key,
+        APIKey: API_KEY,
         BID: brn,
         ISBN: "",
         Modifiers: {}
@@ -41,7 +41,7 @@ function queryNLBTitleDetails(brn) {
   return new Promise((resolve, reject) => {
     const requestArgs = {
       GetTitleDetailsRequest : {
-        APIKey: api_key,
+        APIKey: API_KEY,
         BID: brn,
         ISBN: ""
       }

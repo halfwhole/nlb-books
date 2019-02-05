@@ -3,7 +3,7 @@ import { Container, Table } from 'reactstrap';
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { getBRNAvailability, getRecord } from "../Actions";
+import { getNLBAvailability, getRecord } from "../Actions";
 
 class Book extends Component {
   constructor(props) {
@@ -16,7 +16,7 @@ class Book extends Component {
 
   componentDidMount() {
     const { brn } = this.props.match.params
-    getBRNAvailability(brn, (availability) => this.setState({ availability }))
+    getNLBAvailability(brn, (availability) => this.setState({ availability }))
     // TODO: ideally, this page should retrieve from _record_, not by querying NLB directly
     getRecord(brn, (record) => this.setState({ record }))
   }
@@ -40,12 +40,14 @@ class Book extends Component {
       <Container>
         <p><strong>BRN: </strong>{ brn }</p>
         { record === null ? <div>Loading record details... <FontAwesomeIcon icon={faSpinner} spin/></div> :
+          record.error ? <p>Error: { record.errorMessage }</p> :
           <div>
             <p><strong>Author: </strong>{ record.author }</p>
             <p><strong>Title: </strong>{ record.title }</p>
           </div>
         }
         { availability === null ? <div>Loading availability... <FontAwesomeIcon icon={faSpinner} spin/></div> :
+          availability.error ? <p>Error: { availability.errorMessage }</p> :
           <Table>
             <thead>
             <tr>

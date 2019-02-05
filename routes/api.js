@@ -8,7 +8,7 @@ const { api_key } = process.env.API_KEY || require('../API_KEY');
 const models = require('../models/index');
 const Record = models.Record;
 
-function queryBRNAvailability(brn) {
+function queryNLBAvailability(brn) {
   return new Promise((resolve, reject) => {
     const requestArgs = {
       GetAvailabilityInfoRequest: {
@@ -19,19 +19,25 @@ function queryBRNAvailability(brn) {
       }
     };
     soap.createClient(url, {}, (err, client) => {
+      if (client === undefined) {
+        reject(new Error("Could not connect to NLB client")); return;
+      }
       const method = client['CatalogueService']['BasicHttpBinding_ICatalogueService']['GetAvailabilityInfo'];
       method(requestArgs, (err, result, envelope, soapHeader) => {
-        // TODO: error handling. If cannot connect to server...
-        if (err) { reject(err) }
-        // TODO: error handling. If result.Status is fail, should reject & send error message
-        // console.log('result: ' + JSON.stringify(result));
-        resolve(result.Items.Item);
+        // console.log('RESULT: ' + JSON.stringify(result));
+        if (err) {
+          reject(err);
+        } else if (result.Status == "FAIL") {
+          reject(new Error("NLB item with BRN " + brn + " does not exist"));
+        } else if (result.Status == "OK") {
+          resolve(result.Items.Item);
+        }
       })
     })
   });
 }
 
-function queryBRNTitleDetails(brn) {
+function queryNLBTitleDetails(brn) {
   return new Promise((resolve, reject) => {
     const requestArgs = {
       GetTitleDetailsRequest : {
@@ -41,11 +47,18 @@ function queryBRNTitleDetails(brn) {
       }
     };
     soap.createClient(url, {}, (err, client) => {
+      if (client === undefined) {
+        reject(new Error("Could not connect to NLB client")); return;
+      }
       const method = client['CatalogueService']['BasicHttpBinding_ICatalogueService']['GetTitleDetails'];
       method(requestArgs, (err, result, envelope, soapHeader) => {
-        // TODO: error handling
-        if (err) { reject(err) }
-        resolve(result.TitleDetail);
+        if (err) {
+          reject(err);
+        } else if (result.Status == "FAIL") {
+          reject(new Error("NLB item with BRN " + brn + " does not exist"));
+        } else if (result.Status == "OK") {
+          resolve(result.TitleDetail);
+        }
       })
     });
   });
@@ -56,21 +69,23 @@ function filterAvailableBooks(result) {
 }
 
 // Get availability (pass in BRN as param)
-router.get('/brn/availability/:brn', function(req, res) {
+router.get('/nlb/availability/:brn', function(req, res) {
   const brn = req.params.brn;
-  queryBRNAvailability(brn)
+  queryNLBAvailability(brn)
     .then((result) => {
       res.json(filterAvailableBooks(result));
     })
+    .catch((error) => res.status(400).send({ error: true, errorMessage: error.message }));
 });
 
 // Get title details (pass in BRN as param)
-router.get('/brn/title/:brn', function(req, res) {
+router.get('/nlb/title/:brn', function(req, res) {
   const brn = req.params.brn;
-  queryBRNTitleDetails(brn)
+  queryNLBTitleDetails(brn)
     .then((result) => {
       res.json(result);
     })
+    .catch((error) => res.status(400).send({ error: true, errorMessage: error.message }));
 });
 
 // Create record (POST method, pass in details as JSON)
@@ -89,13 +104,18 @@ router.get('/record', function(req, res) {
 
 // Get record (pass in BRN as param)
 router.get('/record/:brn', function(req, res) {
-  Record.findOne({ where: { brn: req.params.brn } })
-    .then((result) => res.status(200).send(result))
+  const { brn } = req.params;
+  Record.findOne({ where: { brn: brn } })
+    .then((result) => {
+      if (result === null) res.status(400).send({ error: true, errorMessage: "Record with BRN " + brn + " does not exist" });
+      else res.status(200).send(result);
+    })
 });
 
 // Delete record (DELETE method, pass in BRN as param)
 router.delete('/record/:brn', function(req, res) {
-  Record.destroy({ where: { brn: req.params.brn } })
+  const { brn } = req.params;
+  Record.destroy({ where: { brn: brn } })
     .then(() => res.status(200).send())
 });
 

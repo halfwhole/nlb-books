@@ -3,7 +3,8 @@ module.exports = (sequelize, DataTypes) => {
   const Record = sequelize.define('Record', {
     brn: {
       type: DataTypes.INTEGER,
-      allowNull: false
+      allowNull: false,
+      unique: true
     },
     title: {
       type: DataTypes.STRING,
@@ -17,7 +18,8 @@ module.exports = (sequelize, DataTypes) => {
   Record.associate = function(models) {
     // associations can be defined here
     Record.hasMany(models.Availability, {
-      foreignKey: 'recordId',
+      foreignKey: 'recordBrn',
+      sourceKey: 'brn',
       as: 'availabilities'
     });
   };

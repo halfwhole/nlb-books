@@ -16,7 +16,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {});
   Availability.associate = function(models) {
     Availability.belongsTo(models.Record, {
-      foreignKey: 'recordId',
+      foreignKey: 'recordBrn',
+      targetKey: 'brn',
       onDelete: 'CASCADE'
     });
   };

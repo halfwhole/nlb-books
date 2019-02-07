@@ -3,38 +3,38 @@ import { Container, Table } from 'reactstrap';
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { getNLBAvailability, getRecord } from "../Actions";
+import { getRecord } from "../Actions";
 
 class Book extends Component {
   constructor(props) {
     super(props)
     this.state = {
-      availability: null,
+      availabilities: null,
       record: null
     }
   }
 
   componentDidMount() {
     const { brn } = this.props.match.params
-    getNLBAvailability(brn, (availability) => this.setState({ availability }))
-    // TODO: ideally, this page should retrieve from _record_, not by querying NLB directly
-    getRecord(brn, (record) => this.setState({ record }))
+    getRecord(brn).then(record => {
+      const availabilities = record.availabilities;
+      this.setState({ record, availabilities });
+    })
   }
 
   showContent() {
-    const { availability } = this.state
-    if (availability.length === 0) return
-    return availability.map((item) =>
-      <tr key={item.ItemNo}>
-        <td>{ item.BranchName }</td>
-        <td>{ item.CallNumber }</td>
-        <td>{ item.StatusDesc }</td>
-        <td>{ item.StatusCode }</td>
+    const { availabilities } = this.state
+    if (availabilities.length === 0) return
+    return availabilities.map((availability, index) =>
+      <tr key={index}>
+        <td>{ availability.branchName }</td>
+        <td>{ availability.callNumber }</td>
+        <td>{ availability.statusDesc }</td>
       </tr>)
   }
 
   render () {
-    const { availability, record } = this.state
+    const { availabilities, record } = this.state
     const { brn } = this.props.match.params
     return (
       <Container>
@@ -46,15 +46,14 @@ class Book extends Component {
             <p><strong>Title: </strong>{ record.title }</p>
           </div>
         }
-        { availability === null ? <div>Loading availability... <FontAwesomeIcon icon={faSpinner} spin/></div> :
-          availability.error ? <p>Error: { availability.errorMessage }</p> :
+        { availabilities === null ? <div>Loading availabilities... <FontAwesomeIcon icon={faSpinner} spin/></div> :
+          availabilities.error ? <p>Error: { availabilities.errorMessage }</p> :
           <Table>
             <thead>
             <tr>
               <th>BranchName</th>
               <th>CallNumber</th>
               <th>StatusDesc</th>
-              <th>StatusCode</th>
             </tr>
             </thead>
             <tbody>
@@ -62,12 +61,9 @@ class Book extends Component {
             </tbody>
           </Table>
         }
-        <h2> JSON dump</h2>
-        {JSON.stringify(availability)}
       </Container>
     )
   }
 }
 
 export default Book
-

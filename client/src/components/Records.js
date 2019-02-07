@@ -24,7 +24,7 @@ class Records extends Component {
 
   // once submitted, gets records (again), then sets submitting back to false. to be called after every api action
   submitCallback() {
-    getRecords(records => this.setState({ records }))
+    getRecords().then(records => this.setState({ records }))
     this.setState({ submitting: false })
   }
 
@@ -36,12 +36,12 @@ class Records extends Component {
     const { brn } = this.state
     event.preventDefault()
     this.setState({ submitting: true })
-    createRecord(brn, this.submitCallback)
+    createRecord(brn).then(this.submitCallback)
   }
 
   handleDelete(brn) {
     this.setState({ submitting: true })
-    deleteRecord(brn, this.submitCallback)
+    deleteRecord(brn).then(this.submitCallback)
   }
 
   showRecords() {

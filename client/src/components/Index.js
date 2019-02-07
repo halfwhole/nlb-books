@@ -16,7 +16,7 @@ class Index extends Component {
   }
 
   getRecords() {
-    getRecords((records) => this.setState({ records }))
+    getRecords().then(records => this.setState({ records }))
   }
 
   showRecords() {

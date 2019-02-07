@@ -10,7 +10,8 @@ module.exports = {
       },
       brn: {
         type: Sequelize.INTEGER,
-        allowNull: false
+        allowNull: false,
+        unique: true
       },
       title: {
         type: Sequelize.STRING,

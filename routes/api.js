@@ -27,6 +27,8 @@ function queryNLBAvailability(brn) {
       method(requestArgs, (err, result, envelope, soapHeader) => {
         if (err) {
           reject(err);
+        } else if (result.Status == "ERROR") {
+          reject(new Error("NLB API key invalid or not found"));
         } else if (result.Status == "FAIL") {
           reject(new Error("NLB item with BRN " + brn + " does not exist"));
         } else if (result.Status == "OK") {
@@ -54,6 +56,8 @@ function queryNLBTitleDetails(brn) {
       method(requestArgs, (err, result, envelope, soapHeader) => {
         if (err) {
           reject(err);
+        } else if (result.Status == "ERROR") {
+          reject(new Error("NLB API key invalid or not found"));
         } else if (result.Status == "FAIL") {
           reject(new Error("NLB item with BRN " + brn + " does not exist"));
         } else if (result.Status == "OK") {
@@ -92,7 +96,7 @@ router.get('/nlb/title/:brn', function(req, res) {
 router.post('/record', function(req, res) {
   const { brn, title, author } = req.body;
   Record.create({ brn, title, author })
-    .then((record) => res.status(201).send(record))
+    .then(() => res.status(201).send())
     .catch((error) => res.status(400).send(error))
 });
 
@@ -117,6 +121,13 @@ router.delete('/record/:brn', function(req, res) {
   const { brn } = req.params;
   Record.destroy({ where: { brn: brn } })
     .then(() => res.status(200).send())
+});
+
+// Create availability (POST method, pass in details as JSON)
+router.post('/availability/', function(req, res) {
+  const { branchName, callNumber, statusDesc, recordBrn } = req.body;
+  Availability.create({ branchName, callNumber, statusDesc, recordBrn })
+    .then(() => res.status(201).send())
 });
 
 module.exports = router;

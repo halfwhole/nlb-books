@@ -1,46 +1,59 @@
 // The following functions query the NLB API
-export function getNLBAvailability(brn, callback = () => {}) {
-  fetch('/api/nlb/availability/' + brn)
+export function getNLBAvailabilities(brn) {
+  return fetch('/api/nlb/availability/' + brn)
     .then(res => res.json())
-    .then(callback)
 }
 
-export function getNLBTitleDetails(brn, callback = () => {}) {
-  fetch('/api/nlb/title/' + brn)
+export function getNLBTitleDetails(brn) {
+  return fetch('/api/nlb/title/' + brn)
     .then(res => res.json())
-    .then(callback)
 }
 
 // The following functions query Record from the database
-export function getRecord(brn, callback = () => {}) {
-  fetch('/api/record/' + brn)
+export function getRecord(brn) {
+  return fetch('/api/record/' + brn)
     .then(res => res.json())
-    .then(callback)
 }
 
-export function getRecords(callback = () => {}) {
-  fetch('/api/record')
+export function getRecords() {
+  return fetch('/api/record')
     .then(res => res.json())
-    .then(callback)
 }
 
-export function createRecord(brn, callback = () => {}) {
+export function createRecord(brn) {
+  // TODO: please refactor me (split into smaller methods)
   // TODO: validate that BRN is unique
-  getNLBTitleDetails(brn, (result) => {
+  const titleDetails = getNLBTitleDetails(brn)
+  const availabilities = getNLBAvailabilities(brn)
+  return Promise.all([titleDetails, availabilities]).then((values) => {
     // TODO: error handling --- if result.error, then ...
-    fetch('/api/record', {
+    const titleDetails = values[0]
+    const availabilities = values[1]
+    return fetch('/api/record', {
       method: 'post',
       headers: {'Content-Type': 'application/json'},
       body: JSON.stringify({
         brn: brn,
-        title: result.TitleName,
-        author: result.Author
+        title: titleDetails.TitleName,
+        author: titleDetails.Author
       })
-    }).then(callback)
-  });
+    }).then(() => {
+      return Promise.all(availabilities.map(availability => {
+        return fetch('/api/availability', {
+          method: 'post',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            branchName: availability.BranchName,
+            callNumber: availability.CallNumber,
+            statusDesc: availability.StatusDesc,
+            recordBrn: brn
+          })
+        })
+      }))
+    })
+  })
 }
 
-export function deleteRecord(brn, callback = () => {}) {
-  fetch('/api/record/' + brn, { method: 'delete' })
-    .then(callback)
+export function deleteRecord(brn) {
+  return fetch('/api/record/' + brn, { method: 'delete' })
 }

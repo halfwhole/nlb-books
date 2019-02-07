@@ -28,13 +28,13 @@ module.exports = {
         allowNull: false,
         type: Sequelize.DATE
       },
-      recordId: {
+      recordBrn: {
         type: Sequelize.INTEGER,
         onDelete: 'CASCADE',
         references: {
          model: 'Records',
-         key: 'id',
-         as: 'recordId' 
+         key: 'brn',
+         as: 'recordBrn' 
         }
       }
     });

@@ -7,6 +7,7 @@ const { API_KEY } = process.env || require('../API_KEY');
 
 const models = require('../models/index');
 const Record = models.Record;
+const Availability = models.Availability;
 
 function queryNLBAvailability(brn) {
   return new Promise((resolve, reject) => {
@@ -68,7 +69,7 @@ function filterAvailableBooks(result) {
   return result.filter(book => book.StatusCode == "S");
 }
 
-// Get availability (pass in BRN as param)
+// Get NLB availability (pass in BRN as param)
 router.get('/nlb/availability/:brn', function(req, res) {
   const brn = req.params.brn;
   queryNLBAvailability(brn)
@@ -78,7 +79,7 @@ router.get('/nlb/availability/:brn', function(req, res) {
     .catch((error) => res.status(400).send({ error: true, errorMessage: error.message }));
 });
 
-// Get title details (pass in BRN as param)
+// Get NLB title details (pass in BRN as param)
 router.get('/nlb/title/:brn', function(req, res) {
   const brn = req.params.brn;
   queryNLBTitleDetails(brn)
@@ -105,7 +106,7 @@ router.get('/record', function(req, res) {
 // Get record (pass in BRN as param)
 router.get('/record/:brn', function(req, res) {
   const { brn } = req.params;
-  Record.findOne({ where: { brn: brn } })
+  Record.findOne({ where: { brn: brn }, include: [{ model: Availability, as: 'availabilities' }] })
     .then((result) => {
       if (result === null) res.status(400).send({ error: true, errorMessage: "Record with BRN " + brn + " does not exist" });
       else res.status(200).send(result);

@@ -1,83 +1,18 @@
 var express = require('express');
 var router = express.Router();
 
-const soap = require('strong-soap').soap;
-const url = "http://openweb-stg.nlb.gov.sg/ows/CatalogueService.svc?wsdl";
-const API_KEY = process.env.API_KEY || require('../API_KEY').API_KEY;
-
 const models = require('../models/index');
 const Record = models.Record;
 const Availability = models.Availability;
 
-function queryNLBAvailability(brn) {
-  return new Promise((resolve, reject) => {
-    const requestArgs = {
-      GetAvailabilityInfoRequest: {
-        APIKey: API_KEY,
-        BID: brn,
-        ISBN: "",
-        Modifiers: {}
-      }
-    };
-    soap.createClient(url, {}, (err, client) => {
-      if (client === undefined) {
-        reject(new Error("Could not connect to NLB client")); return;
-      }
-      const method = client['CatalogueService']['BasicHttpBinding_ICatalogueService']['GetAvailabilityInfo'];
-      method(requestArgs, (err, result, envelope, soapHeader) => {
-        if (err) {
-          reject(err);
-        } else if (result.Status == "ERROR") {
-          reject(new Error("NLB API key invalid or not found"));
-        } else if (result.Status == "FAIL") {
-          reject(new Error("NLB item with BRN " + brn + " does not exist"));
-        } else if (result.Status == "OK") {
-          resolve(result.Items.Item);
-        }
-      })
-    })
-  });
-}
-
-function queryNLBTitleDetails(brn) {
-  return new Promise((resolve, reject) => {
-    const requestArgs = {
-      GetTitleDetailsRequest : {
-        APIKey: API_KEY,
-        BID: brn,
-        ISBN: ""
-      }
-    };
-    soap.createClient(url, {}, (err, client) => {
-      if (client === undefined) {
-        reject(new Error("Could not connect to NLB client")); return;
-      }
-      const method = client['CatalogueService']['BasicHttpBinding_ICatalogueService']['GetTitleDetails'];
-      method(requestArgs, (err, result, envelope, soapHeader) => {
-        if (err) {
-          reject(err);
-        } else if (result.Status == "ERROR") {
-          reject(new Error("NLB API key invalid or not found"));
-        } else if (result.Status == "FAIL") {
-          reject(new Error("NLB item with BRN " + brn + " does not exist"));
-        } else if (result.Status == "OK") {
-          resolve(result.TitleDetail);
-        }
-      })
-    });
-  });
-}
-
-function filterAvailableBooks(result) {
-  return result.filter(book => book.StatusCode == "S");
-}
+const { queryNLBAvailability, queryNLBTitleDetails } = require('../helpers/nlb');
 
 // Get NLB availability (pass in BRN as param)
 router.get('/nlb/availability/:brn', function(req, res) {
   const brn = req.params.brn;
   queryNLBAvailability(brn)
     .then((result) => {
-      res.json(filterAvailableBooks(result));
+      res.json(result);
     })
     .catch((error) => res.status(400).send({ error: true, errorMessage: error.message }));
 });
@@ -102,15 +37,18 @@ router.post('/record', function(req, res) {
 
 // Get records
 router.get('/record', function(req, res) {
-  Record.findAll()
+  Record.findAll({ order: ['brn'] })
     .then((records) => res.json(records))
 });
 
 // Get record (pass in BRN as param)
 router.get('/record/:brn', function(req, res) {
   const { brn } = req.params;
-  Record.findOne({ where: { brn: brn }, include: [{ model: Availability, as: 'availabilities' }] })
-    .then((result) => {
+  Record.findOne({
+    where: { brn: brn },
+    include: [{ model: Availability, as: 'availabilities' }],
+    order: [[{ model: Availability, as: 'availabilities' }, 'branchName']]
+  }).then((result) => {
       if (result === null) res.status(400).send({ error: true, errorMessage: "Record with BRN " + brn + " does not exist" });
       else res.status(200).send(result);
     })
@@ -129,5 +67,12 @@ router.post('/availability/', function(req, res) {
   Availability.create({ branchName, callNumber, statusDesc, recordBrn })
     .then(() => res.status(201).send())
 });
+
+// Delete availabilities (DELETE method, pass in BRN as param)
+router.delete('/availability/:brn', function(req, res) {
+  const { brn } = req.params;
+  Availability.destroy({ where: { recordBrn: brn } })
+    .then(() => res.status(200).send())
+})
 
 module.exports = router;

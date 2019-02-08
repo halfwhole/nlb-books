@@ -15,15 +15,15 @@ class Records extends Component {
     }
     this.handleChange = this.handleChange.bind(this)
     this.handleSubmit = this.handleSubmit.bind(this)
-    this.submitCallback = this.submitCallback.bind(this)
+    this.refresh = this.refresh.bind(this)
   }
 
   componentDidMount() {
-    this.submitCallback()
+    this.refresh()
   }
 
   // once submitted, gets records (again), then sets submitting back to false. to be called after every api action
-  submitCallback() {
+  refresh() {
     getRecords().then(records => this.setState({ records }))
     this.setState({ submitting: false })
   }
@@ -36,12 +36,12 @@ class Records extends Component {
     const { brn } = this.state
     event.preventDefault()
     this.setState({ submitting: true })
-    createRecord(brn).then(this.submitCallback)
+    createRecord(brn).then(this.refresh)
   }
 
   handleDelete(brn) {
     this.setState({ submitting: true })
-    deleteRecord(brn).then(this.submitCallback)
+    deleteRecord(brn).then(this.refresh)
   }
 
   showRecords() {

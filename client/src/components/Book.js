@@ -1,25 +1,38 @@
 import React, { Component } from 'react';
-import { Container, Table } from 'reactstrap';
+import { Container, Table, Button } from 'reactstrap';
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { getRecord } from "../Actions";
+import { getRecord, updateAvailabilities } from "../Actions";
 
 class Book extends Component {
   constructor(props) {
     super(props)
     this.state = {
       availabilities: null,
-      record: null
+      record: null,
+      refreshing: false
     }
+    this.refresh = this.refresh.bind(this)
+    this.handleUpdate = this.handleUpdate.bind(this)
   }
 
   componentDidMount() {
+    this.refresh()
+  }
+
+  refresh() {
     const { brn } = this.props.match.params
     getRecord(brn).then(record => {
-      const availabilities = record.availabilities;
-      this.setState({ record, availabilities });
+      this.setState({ record, availabilities: record.availabilities, refreshing: false })
     })
+  }
+
+  handleUpdate() {
+    const { brn } = this.props.match.params
+    this.setState({ refreshing: true })
+    updateAvailabilities(brn).then(this.refresh)
+
   }
 
   showContent() {
@@ -34,10 +47,11 @@ class Book extends Component {
   }
 
   render () {
-    const { availabilities, record } = this.state
+    const { availabilities, record, refreshing } = this.state
     const { brn } = this.props.match.params
     return (
       <Container>
+        <Button color="success" disabled={refreshing} onClick={this.handleUpdate}>Refresh</Button>
         <p><strong>BRN: </strong>{ brn }</p>
         { record === null ? <div>Loading record details... <FontAwesomeIcon icon={faSpinner} spin/></div> :
           record.error ? <p>Error: { record.errorMessage }</p> :

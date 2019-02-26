@@ -25,7 +25,7 @@ export function createRecord(brn) {
   const titleDetails = getNLBTitleDetails(brn)
   const availabilities = getNLBAvailabilities(brn)
   return Promise.all([titleDetails, availabilities]).then((values) => {
-    // TODO: error handling --- if result.error, then ...
+    // TODO: error handling for availabilities/title details: { error: true, errorMessage: ... } (test with 203004004)
     const titleDetails = values[0]
     const availabilities = values[1]
     createRecordOnly(brn, titleDetails).then(createAvailabilitiesOnly(brn, availabilities))
@@ -42,6 +42,12 @@ export function updateAvailabilities(brn) {
   return Promise.all([getNewAvailabilities, deleteOldAvailabilities]).then((values) => {
     const availabilities = values[0]
     createAvailabilitiesOnly(brn, availabilities)
+  })
+}
+
+export function updateAllAvailabilities() {
+  return getRecords().then(records => {
+    return Promise.all(records.map(record => updateAvailabilities(record.brn) ))
   })
 }
 

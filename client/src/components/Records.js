@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Container, Form, FormGroup, Label, Input, Button } from 'reactstrap';
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { getRecords, createRecord, deleteRecord } from "../Actions";
+import { getRecords, createRecord } from "../Actions";
 
 class Records extends Component {
 
@@ -24,8 +24,7 @@ class Records extends Component {
 
   // once submitted, gets records (again), then sets submitting back to false. to be called after every api action
   refresh() {
-    getRecords().then(records => this.setState({ records }))
-    this.setState({ submitting: false })
+    getRecords().then(records => this.setState({ records, submitting: false }))
   }
 
   handleChange(event) {
@@ -39,27 +38,6 @@ class Records extends Component {
     createRecord(brn).then(this.refresh)
   }
 
-  handleDelete(brn) {
-    this.setState({ submitting: true })
-    deleteRecord(brn).then(this.refresh)
-  }
-
-  showRecords() {
-    const { records, submitting } = this.state
-    return (
-      <ul>
-        { records === null ? <div>Loading records... <FontAwesomeIcon icon={faSpinner} spin/></div> :
-          records.map((record) =>
-            <li key={record.brn}>
-            { record.brn }&nbsp;
-            <Button color="danger" onClick={() => this.handleDelete(record.brn)} disabled={submitting}>Delete</Button>
-            </li>
-          )
-        }
-      </ul>
-    )
-  }
-
   render() {
     const { submitting } = this.state
     return (
@@ -70,11 +48,11 @@ class Records extends Component {
             <Label for="brn">BRN</Label>
             <Input type="number" value={this.state.brn} onChange={this.handleChange} name="brn" id="brn"/>
           </FormGroup>
-          <Button disabled={submitting}>Submit</Button>
+          <Button disabled={submitting}>
+            Submit { submitting ? <FontAwesomeIcon icon={faSpinner} spin/> : null }
+          </Button>
         </Form>
         <br/>
-        <h2>Current Records</h2>
-        {this.showRecords()}
       </Container>
     )
   }

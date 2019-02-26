@@ -32,7 +32,6 @@ class Book extends Component {
     const { brn } = this.props.match.params
     this.setState({ refreshing: true })
     updateAvailabilities(brn).then(this.refresh)
-
   }
 
   showContent() {
@@ -51,8 +50,10 @@ class Book extends Component {
     const { brn } = this.props.match.params
     return (
       <Container>
-        <Button color="success" disabled={refreshing} onClick={this.handleUpdate}>Refresh</Button>
-        <p><strong>BRN: </strong>{ brn }</p>
+        <p>
+          <strong>BRN: </strong>{ brn }
+          <Button color="success" className="float-right" disabled={refreshing} onClick={this.handleUpdate}>Refresh</Button>
+        </p>
         { record === null ? <div>Loading record details... <FontAwesomeIcon icon={faSpinner} spin/></div> :
           record.error ? <p>Error: { record.errorMessage }</p> :
           <div>

@@ -35,13 +35,15 @@ router.post('/record', function(req, res) {
     .catch((error) => res.status(400).send(error))
 });
 
-// Get records
+// Get records ordered by brn, availabilities are not ordered
 router.get('/record', function(req, res) {
-  Record.findAll({ order: ['brn'] })
-    .then((records) => res.json(records))
+  Record.findAll({
+    include: [{ model: Availability, as: 'availabilities' }],
+    order: ['brn']
+  }).then((records) => res.json(records))
 });
 
-// Get record (pass in BRN as param)
+// Get record (pass in BRN as param), where availabilities are ordered by branchName
 router.get('/record/:brn', function(req, res) {
   const { brn } = req.params;
   Record.findOne({

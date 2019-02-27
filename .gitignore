@@ -1,4 +1,5 @@
 node_modules/
 .idea/
+npm-debug.log
 API_KEY.js
 TODO.txt

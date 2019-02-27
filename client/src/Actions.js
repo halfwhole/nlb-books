@@ -41,6 +41,11 @@ export function getLibraries() {
     .then(res => res.json())
 }
 
+export function getLastUpdated() {
+  return fetch('/api/lastUpdated')
+    .then(res => res.json())
+}
+
 export function updateAvailabilities(brn) {
   const getNewAvailabilities = getNLBAvailabilities(brn)
   const deleteOldAvailabilities = fetch('/api/availability/' + brn, { method: 'delete' })

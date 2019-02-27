@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
 import { Container, ListGroup, ListGroupItem, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Badge, Row, Col } from 'reactstrap';
 import { faTrashAlt } from "@fortawesome/free-regular-svg-icons";
-import { faSyncAlt } from "@fortawesome/free-solid-svg-icons";
+import { faSyncAlt, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { withRouter } from 'react-router';
 
-import { getRecords, deleteRecord, getLibraries, updateAllAvailabilities } from "../Actions";
+import { getRecords, deleteRecord, getLibraries, getLastUpdated, updateAllAvailabilities } from "../Actions";
 
 class Index extends Component {
   constructor(props) {
@@ -15,7 +15,8 @@ class Index extends Component {
       libraries: [],
       filterLibraries: [],
       refreshing: false,
-      dropdownOpen: false
+      dropdownOpen: false,
+      lastUpdated: null
     }
     this.refresh = this.refresh.bind(this)
     this.handleUpdate = this.handleUpdate.bind(this)
@@ -30,7 +31,9 @@ class Index extends Component {
   }
 
   refresh() {
-    getRecords().then(records => this.setState({ records, refreshing: false }))
+    const a = getRecords().then(records => this.setState({ records }))
+    const b = getLastUpdated().then(lastUpdated => this.setState({ lastUpdated: lastUpdated.lastUpdated }))
+    Promise.all([a, b]).then(() => this.setState({ refreshing: false }))
   }
 
   handleUpdate() {
@@ -82,20 +85,21 @@ class Index extends Component {
     return (
       <ListGroup>
         { availableRecords.map((record) =>
-          <ListGroupItem key={record.brn} onClick={() => history.push('/book/' + record.brn)}>
-            <strong>{ record.brn }</strong> { record.title }
+          <ListGroupItem key={record.brn}>
+            { record.title }
             <FontAwesomeIcon onClick={(event) => this.handleDelete(event, record.brn)} className="float-right pointer hover" icon={faTrashAlt}/>
+            <FontAwesomeIcon onClick={() => history.push('/book/' + record.brn)} className=" mr-2 float-right pointer hover" icon={faInfoCircle}/>
           </ListGroupItem> )}
       </ListGroup>
     )
   }
 
   render () {
-    const { refreshing, dropdownOpen, libraries, filterLibraries } = this.state
+    const { refreshing, dropdownOpen, libraries, filterLibraries, lastUpdated } = this.state
     return (
       <Container>
         <Row className="mt-3 ml-2">
-          <p>Last updated ... (todo)</p>
+          { lastUpdated === null ? null : <p><i>Last updated {lastUpdated} ago</i></p> }
         </Row>
         <Row>
           <Dropdown className="ml-3" isOpen={dropdownOpen} toggle={this.toggleDropdown}>
@@ -116,10 +120,10 @@ class Index extends Component {
             </Container>
             : null }
         </Row>
-        <h3>Available books</h3>
+        <h3 className="ml-1">Available books</h3>
         { this.showFilteredRecords(this.filterAvailableRecords) }
         <br/>
-        <h3>Unavailable books</h3>
+        <h3 className="ml-1">Unavailable books</h3>
         { this.showFilteredRecords(this.filterUnavailableRecords) }
       </Container>
     )

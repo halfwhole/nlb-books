@@ -6,6 +6,7 @@ const Record = models.Record;
 const Availability = models.Availability;
 
 const { queryNLBAvailability, queryNLBTitleDetails } = require('../helpers/nlb');
+const { ago } = require('../helpers/tinyAgo.min');
 
 // Get NLB availability (pass in BRN as param)
 router.get('/nlb/availability/:brn', function(req, res) {
@@ -35,11 +36,11 @@ router.post('/record', function(req, res) {
     .catch((error) => res.status(400).send(error))
 });
 
-// Get records ordered by brn, availabilities are not ordered
+// Get records ordered by title, availabilities are not ordered
 router.get('/record', function(req, res) {
   Record.findAll({
     include: [{ model: Availability, as: 'availabilities' }],
-    order: ['brn']
+    order: ['title']
   }).then((records) => res.json(records))
 });
 
@@ -67,7 +68,14 @@ router.delete('/record/:brn', function(req, res) {
 router.get('/library', function(req, res) {
   Availability.aggregate('branchName', 'DISTINCT', { plain: false, order: ['branchName'] })
     .then(results => results.map(result => result.DISTINCT))
-    .then(libraries => res.status(200).send(libraries))
+    .then(libraries => res.status(200).send(libraries));
+});
+
+// Get last updated time (relative)
+router.get('/lastUpdated', function(req, res) {
+  Availability.max('updatedAt')
+    .then(result => res.status(200).json({ lastUpdated: ago(new Date(result).getTime()) }))
+    .catch(error => res.status(400).send({ error: true, errorMessage: error.message }));
 });
 
 // Create availability (POST method, pass in details as JSON)

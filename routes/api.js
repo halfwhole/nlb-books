@@ -63,6 +63,13 @@ router.delete('/record/:brn', function(req, res) {
     .then(() => res.status(200).send())
 });
 
+// Get all libraries
+router.get('/library', function(req, res) {
+  Availability.aggregate('branchName', 'DISTINCT', { plain: false, order: ['branchName'] })
+    .then(results => results.map(result => result.DISTINCT))
+    .then(libraries => res.status(200).send(libraries))
+});
+
 // Create availability (POST method, pass in details as JSON)
 router.post('/availability/', function(req, res) {
   const { branchName, callNumber, statusDesc, recordBrn } = req.body;

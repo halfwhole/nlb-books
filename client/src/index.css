@@ -16,3 +16,11 @@ code {
 .pointer {
   cursor: pointer;
 }
+
+.hover {
+  opacity: 0.6;
+}
+
+.hover:hover {
+  opacity: 1;
+}

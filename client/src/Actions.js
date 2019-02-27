@@ -36,6 +36,11 @@ export function deleteRecord(brn) {
   return fetch('/api/record/' + brn, { method: 'delete' })
 }
 
+export function getLibraries() {
+  return fetch('/api/library')
+    .then(res => res.json())
+}
+
 export function updateAvailabilities(brn) {
   const getNewAvailabilities = getNLBAvailabilities(brn)
   const deleteOldAvailabilities = fetch('/api/availability/' + brn, { method: 'delete' })

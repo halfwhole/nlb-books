@@ -1,3 +1,5 @@
+import { ago } from "./tinyAgo";
+
 // The following functions query the NLB API
 export function getNLBAvailabilities(brn) {
   return fetch('/api/nlb/availability/' + brn)
@@ -41,9 +43,16 @@ export function getLibraries() {
     .then(res => res.json())
 }
 
-export function getLastUpdated() {
-  return fetch('/api/lastUpdated')
+export function getLastUpdatedAll() {
+  return fetch('/api/lastUpdatedAll')
     .then(res => res.json())
+    .then(res => ago(new Date(res).getTime()));
+}
+
+export function getLastUpdated(brn) {
+  return fetch('/api/lastUpdated/' + brn)
+    .then(res => res.json())
+    .then(res => ago(new Date(res).getTime()));
 }
 
 export function updateAvailabilities(brn) {

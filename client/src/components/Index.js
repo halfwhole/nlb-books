@@ -1,11 +1,11 @@
 import React, { Component } from 'react';
-import { Container, ListGroup, ListGroupItem, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Badge, Row, Col } from 'reactstrap';
+import { Container, ListGroup, ListGroupItem, Button, Dropdown, DropdownToggle, DropdownMenu, DropdownItem, Badge, Row } from 'reactstrap';
 import { faTrashAlt } from "@fortawesome/free-regular-svg-icons";
 import { faSyncAlt, faInfoCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { withRouter } from 'react-router';
 
-import { getRecords, deleteRecord, getLibraries, getLastUpdated, updateAllAvailabilities } from "../Actions";
+import { getRecords, deleteRecord, getLibraries, getLastUpdatedAll, updateAllAvailabilities } from "../Actions";
 
 class Index extends Component {
   constructor(props) {
@@ -32,7 +32,7 @@ class Index extends Component {
 
   refresh() {
     const a = getRecords().then(records => this.setState({ records }))
-    const b = getLastUpdated().then(lastUpdated => this.setState({ lastUpdated: lastUpdated.lastUpdated }))
+    const b = getLastUpdatedAll().then(lastUpdated => this.setState({ lastUpdated: lastUpdated }))
     Promise.all([a, b]).then(() => this.setState({ refreshing: false }))
   }
 
@@ -52,7 +52,7 @@ class Index extends Component {
   handleSelect(library) {
     const { filterLibraries } = this.state
     if (filterLibraries.includes(library)) {
-      this.setState({ filterLibraries: filterLibraries.filter(lib => lib != library) })
+      this.setState({ filterLibraries: filterLibraries.filter(lib => lib !== library) })
     } else {
       filterLibraries.push(library)
       filterLibraries.sort()
@@ -109,7 +109,9 @@ class Index extends Component {
             </DropdownMenu>
           </Dropdown>
           <Button className="ml-2" disabled={refreshing} color="success" onClick={this.handleUpdate}>
-            Refresh <FontAwesomeIcon icon={faSyncAlt}/>
+            { refreshing
+              ? <div>Refreshing <FontAwesomeIcon icon={faSyncAlt} spin/></div>
+              : <div>Refresh <FontAwesomeIcon icon={faSyncAlt}/></div> }
           </Button>
         </Row>
         <Row className="mb-3">

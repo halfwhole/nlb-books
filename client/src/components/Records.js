@@ -49,7 +49,10 @@ class Records extends Component {
             <Input type="number" value={this.state.brn} onChange={this.handleChange} name="brn" id="brn"/>
           </FormGroup>
           <Button disabled={submitting}>
-            Submit { submitting ? <FontAwesomeIcon icon={faSpinner} spin/> : null }
+            { submitting
+              ? <div>Submitting <FontAwesomeIcon icon={faSpinner} spin/></div>
+              : <div>Submit</div>
+            }
           </Button>
         </Form>
         <br/>

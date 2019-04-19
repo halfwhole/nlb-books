@@ -6,7 +6,6 @@ const Record = models.Record;
 const Availability = models.Availability;
 
 const { queryNLBAvailability, queryNLBTitleDetails } = require('../helpers/nlb');
-const { ago } = require('../helpers/tinyAgo.min');
 
 // Get NLB availability (pass in BRN as param)
 router.get('/nlb/availability/:brn', function(req, res) {
@@ -71,10 +70,18 @@ router.get('/library', function(req, res) {
     .then(libraries => res.status(200).send(libraries));
 });
 
-// Get last updated time (relative)
-router.get('/lastUpdated', function(req, res) {
-  Availability.max('updatedAt')
-    .then(result => res.status(200).json({ lastUpdated: ago(new Date(result).getTime()) }))
+// Get last updated time of all availabilities (absolute)
+router.get('/lastUpdatedAll', function(req, res) {
+  Availability.min('updatedAt')
+    .then(result => res.status(200).json(result))
+    .catch(error => res.status(400).send({ error: true, errorMessage: error.message }));
+});
+
+// Get last updated time of availabilities for some record (absolute)
+router.get('/lastUpdated/:brn', function(req, res) {
+  const { brn } = req.params;
+  Availability.min('updatedAt', { where: { recordBrn: brn } })
+    .then(result => res.status(200).json(result))
     .catch(error => res.status(400).send({ error: true, errorMessage: error.message }));
 });
 

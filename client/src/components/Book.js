@@ -1,9 +1,9 @@
 import React, { Component } from 'react';
-import { Container, Table, Button } from 'reactstrap';
-import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { Container, Table, Button, Row, Col } from 'reactstrap';
+import { faSpinner, faSyncAlt } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
-import { getRecord, updateAvailabilities } from "../Actions";
+import { getRecord, updateAvailabilities, getLastUpdated } from "../Actions";
 
 class Book extends Component {
   constructor(props) {
@@ -11,7 +11,8 @@ class Book extends Component {
     this.state = {
       availabilities: null,
       record: null,
-      refreshing: false
+      refreshing: false,
+      lastUpdated: null
     }
     this.refresh = this.refresh.bind(this)
     this.handleUpdate = this.handleUpdate.bind(this)
@@ -23,9 +24,13 @@ class Book extends Component {
 
   refresh() {
     const { brn } = this.props.match.params
-    getRecord(brn).then(record => {
-      this.setState({ record, availabilities: record.availabilities, refreshing: false })
+    const a = getRecord(brn).then(record => {
+      this.setState({ record, availabilities: record.availabilities })
     })
+    const b = getLastUpdated(brn).then(lastUpdated => {
+      this.setState({ lastUpdated: lastUpdated })
+    })
+    Promise.all([a, b]).then(() => this.setState({ refreshing: false }))
   }
 
   handleUpdate() {
@@ -46,19 +51,32 @@ class Book extends Component {
   }
 
   render () {
-    const { availabilities, record, refreshing } = this.state
+    const { availabilities, record, refreshing, lastUpdated } = this.state
     const { brn } = this.props.match.params
+    const { history } = this.props
     return (
       <Container>
-        <p>
-          <strong>BRN: </strong>{ brn }
-          <Button color="success" className="float-right" disabled={refreshing} onClick={this.handleUpdate}>Refresh</Button>
-        </p>
+        <Row className="mt-2">
+          <Col>
+            <strong>BRN: </strong>{ brn }
+          </Col>
+          <Col>
+            <Button className="float-right" onClick={() => history.push('/')}>
+              Back
+            </Button>
+            <Button color="success" className="float-right mr-2" disabled={refreshing} onClick={this.handleUpdate}>
+              { refreshing
+                ? <div>Refreshing <FontAwesomeIcon icon={faSyncAlt} spin/></div>
+                : <div>Refresh <FontAwesomeIcon icon={faSyncAlt}/></div> }
+            </Button>
+          </Col>
+        </Row>
         { record === null ? <div>Loading record details... <FontAwesomeIcon icon={faSpinner} spin/></div> :
           record.error ? <p>Error: { record.errorMessage }</p> :
           <div>
             <p><strong>Author: </strong>{ record.author }</p>
             <p><strong>Title: </strong>{ record.title }</p>
+            <p><i>Last updated { lastUpdated } ago</i></p>
           </div>
         }
         { availabilities === null ? <div>Loading availabilities... <FontAwesomeIcon icon={faSpinner} spin/></div> :
@@ -66,9 +84,9 @@ class Book extends Component {
           <Table>
             <thead>
             <tr>
-              <th>BranchName</th>
-              <th>CallNumber</th>
-              <th>StatusDesc</th>
+              <th>Branch name</th>
+              <th>Call number</th>
+              <th>Status</th>
             </tr>
             </thead>
             <tbody>

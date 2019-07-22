@@ -12,7 +12,8 @@ class Book extends Component {
       availabilities: null,
       record: null,
       refreshing: false,
-      lastUpdated: null
+      lastUpdated: null,
+      showAvailableOnly: false
     }
     this.refresh = this.refresh.bind(this)
     this.handleUpdate = this.handleUpdate.bind(this)
@@ -40,18 +41,21 @@ class Book extends Component {
   }
 
   showContent() {
-    const { availabilities } = this.state
+    const { availabilities, showAvailableOnly } = this.state
     if (availabilities.length === 0) return
-    return availabilities.map((availability, index) =>
-      <tr key={index}>
-        <td>{ availability.branchName }</td>
-        <td>{ availability.callNumber }</td>
-        <td>{ availability.statusDesc }</td>
-      </tr>)
+    return availabilities
+      // TODO: refactor this 'Available', 'Not On Loan' into another common location?
+      .filter((availability) => !showAvailableOnly || ['Available', 'Not On Loan'].includes(availability.statusDesc))
+      .map((availability, index) =>
+        <tr key={index}>
+          <td>{ availability.branchName }</td>
+          <td>{ availability.callNumber }</td>
+          <td>{ availability.statusDesc }</td>
+        </tr>)
   }
 
   render () {
-    const { availabilities, record, refreshing, lastUpdated } = this.state
+    const { availabilities, record, refreshing, lastUpdated, showAvailableOnly } = this.state
     const { brn } = this.props.match.params
     const { history } = this.props
     return (
@@ -63,6 +67,9 @@ class Book extends Component {
           <Col>
             <Button className="float-right" onClick={() => history.push('/')}>
               Back
+            </Button>
+            <Button className="float-right mr-2" onClick={() => this.setState({ showAvailableOnly: !showAvailableOnly })}>
+              { showAvailableOnly ? 'Show All' : 'Show Available Only' }
             </Button>
             <Button color="success" className="float-right mr-2" disabled={refreshing} onClick={this.handleUpdate}>
               { refreshing

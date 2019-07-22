@@ -23,14 +23,17 @@ export function getRecords() {
 }
 
 export function createRecord(brn) {
-  // TODO: validate that BRN is unique
+  // If record already exists, just delete it
+  deleteRecord(brn);
   const titleDetails = getNLBTitleDetails(brn)
   const availabilities = getNLBAvailabilities(brn)
   return Promise.all([titleDetails, availabilities]).then((values) => {
-    // TODO: error handling for availabilities/title details: { error: true, errorMessage: ... } (test with 203004004)
     const titleDetails = values[0]
     const availabilities = values[1]
-    createRecordOnly(brn, titleDetails).then(createAvailabilitiesOnly(brn, availabilities))
+    // If availabilities/title details gives an error, just return
+    // Format if it gives an error --- { error: true, errorMessage: ... } (test with 203004004)
+    if (titleDetails.error === true || availabilities.error === true) return;
+    Promise.all([createRecordOnly(brn, titleDetails)]).then(() => createAvailabilitiesOnly(brn, availabilities))
   })
 }
 

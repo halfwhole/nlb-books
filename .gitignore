@@ -1,5 +1,5 @@
 node_modules/
 .idea/
 npm-debug.log
-API_KEY.js
+config/config.js
 TODO.txt

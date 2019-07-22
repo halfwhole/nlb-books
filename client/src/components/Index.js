@@ -23,6 +23,7 @@ class Index extends Component {
     this.toggleDropdown = this.toggleDropdown.bind(this)
     this.filterAvailableRecords = this.filterAvailableRecords.bind(this)
     this.filterUnavailableRecords = this.filterUnavailableRecords.bind(this)
+    this.isAvailable = this.isAvailable.bind(this)
   }
 
   componentDidMount() {
@@ -64,17 +65,22 @@ class Index extends Component {
     this.setState(prevState => ({ dropdownOpen: !prevState.dropdownOpen }))
   }
 
+  isAvailable(filterLibraries, availability) {
+    return filterLibraries.length === 0 ||
+           (filterLibraries.includes(availability.branchName) && ['Not On Loan', 'Available'].includes(availability.statusDesc))
+  }
+
   filterAvailableRecords(records) {
     const { filterLibraries } = this.state
     return records.filter(record => record.availabilities.some(availability => {
-      return (filterLibraries.length === 0 ? true : filterLibraries.includes(availability.branchName)) && availability.statusDesc === "Not On Loan"
+      return this.isAvailable(filterLibraries, availability)
     }))
   }
 
   filterUnavailableRecords(records) {
     const { filterLibraries } = this.state
     return records.filter(record => record.availabilities.every(availability => {
-      return !((filterLibraries.length === 0 ? true : filterLibraries.includes(availability.branchName)) && availability.statusDesc === "Not On Loan")
+      return !(this.isAvailable(filterLibraries, availability))
     }))
   }
 

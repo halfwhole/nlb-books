@@ -62,7 +62,15 @@ class Book extends Component {
       <Container>
         <Row className="mt-2">
           <Col>
-            <strong>BRN: </strong>{ brn }
+            <p><i>Last updated { lastUpdated } ago</i></p>
+            <p><strong>BRN: </strong>{ brn }</p>
+            { record === null ? <p>Loading record details... <FontAwesomeIcon icon={faSpinner} spin/></p> :
+              record.error ? <p>Error: { record.errorMessage }</p> :
+              <div>
+                <p><strong>Author: </strong>{ record.author }</p>
+                <p><strong>Title: </strong>{ record.title }</p>
+              </div>
+            }
           </Col>
           <Col>
             <Button className="float-right" onClick={() => history.push('/')}>
@@ -78,15 +86,7 @@ class Book extends Component {
             </Button>
           </Col>
         </Row>
-        { record === null ? <div>Loading record details... <FontAwesomeIcon icon={faSpinner} spin/></div> :
-          record.error ? <p>Error: { record.errorMessage }</p> :
-          <div>
-            <p><strong>Author: </strong>{ record.author }</p>
-            <p><strong>Title: </strong>{ record.title }</p>
-            <p><i>Last updated { lastUpdated } ago</i></p>
-          </div>
-        }
-        { availabilities === null ? <div>Loading availabilities... <FontAwesomeIcon icon={faSpinner} spin/></div> :
+        { availabilities === null ? <p>Loading availabilities... <FontAwesomeIcon icon={faSpinner} spin/></p> :
           availabilities.error ? <p>Error: { availabilities.errorMessage }</p> :
           <Table>
             <thead>

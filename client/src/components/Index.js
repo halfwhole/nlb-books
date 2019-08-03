@@ -66,8 +66,8 @@ class Index extends Component {
   }
 
   isAvailable(filterLibraries, availability) {
-    return filterLibraries.length === 0 ||
-           (filterLibraries.includes(availability.branchName) && ['Not On Loan', 'Available'].includes(availability.statusDesc))
+    return (filterLibraries.length === 0 || filterLibraries.includes(availability.branchName))
+        && ['Not On Loan', 'Available'].includes(availability.statusDesc)
   }
 
   filterAvailableRecords(records) {

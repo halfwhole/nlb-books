@@ -105,7 +105,7 @@ class Index extends Component {
     return (
       <Container>
         <Row className="mt-3 ml-2">
-          { lastUpdated === null ? null : <p><i>Last updated {lastUpdated} ago</i></p> }
+          <p><i>Last updated { lastUpdated } ago</i></p>
         </Row>
         <Row>
           <Dropdown className="ml-3" isOpen={dropdownOpen} toggle={this.toggleDropdown}>

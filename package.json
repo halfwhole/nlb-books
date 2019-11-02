@@ -18,7 +18,7 @@
     "pg": "^7.8.0",
     "pg-hstore": "^2.3.2",
     "puppeteer": "^1.18.1",
-    "sequelize": "^4.42.0",
+    "sequelize": "^5.15.1",
     "sequelize-cli": "^5.5.0",
     "strong-soap": "^1.14.0"
   },

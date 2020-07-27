@@ -28,6 +28,13 @@ To add a book to your list, navigate to the 'Record' tab, copy NLB's Book Refere
 
 # Developer guide
 
+First, install the relevant dependencies with the following:
+
+```
+$ npm install
+$ cd client && npm install
+```
+
 ## Setting up development server
 
 Express backend: use port 3000.
@@ -37,12 +44,22 @@ $ PORT=3000 npm run devstart
 
 React frontend: use port 5000.
 ```
-$ cd client
-$ PORT=5000 npm start
+$ cd client && PORT=5000 npm start
 ```
 
 Test changes in the React app (`localhost:5000`). (Otherwise, you have to `$ npm run build` everytime you make changes to have it show on the Express app.)
 The React app has been configured to use the backend as a proxy on port 3000.
+
+## Setting up database
+
+Ensure that postgres is first installed.
+
+To create and migrate the `nlb` database, run the following:
+
+```
+$ npx sequelize db:create
+$ npx sequelize db:migrate
+```
 
 ## Deploying for production (on Heroku)
 

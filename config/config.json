@@ -1,6 +1,6 @@
 {
   "development": {
-    "username": "suntoast",
+    "username": "root",
     "password": null,
     "database": "nlb",
     "host": "127.0.0.1",

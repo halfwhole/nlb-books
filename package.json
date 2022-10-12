@@ -20,7 +20,7 @@
     "puppeteer": "^1.18.1",
     "sequelize": "^5.15.1",
     "sequelize-cli": "^5.5.0",
-    "strong-soap": "^1.14.0"
+    "strong-soap": "^1.22.1"
   },
   "devDependencies": {
     "nodemon": "^1.18.9"
